@@ -1,0 +1,1739 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>多交易所策略自动化系统 | Dashboard</title>
+  <meta name="description" content="企业级多交易所加密货币自动化交易系统实时监控仪表板">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    :root {
+      --bg-primary: #f0f2f5;
+      --bg-secondary: #ffffff;
+      --bg-card: #ffffff;
+      --bg-card-hover: #f8f9fb;
+      --border-color: rgba(0, 0, 0, .08);
+      --border-glow: rgba(79, 70, 229, .3);
+      --text-primary: #1e293b;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+      --accent-blue: #4f46e5;
+      --accent-cyan: #0891b2;
+      --accent-emerald: #059669;
+      --accent-amber: #d97706;
+      --accent-rose: #e11d48;
+      --accent-purple: #7c3aed;
+      --gain: #059669;
+      --loss: #dc2626;
+      --glow-blue: 0 4px 14px rgba(79, 70, 229, .1);
+      --glow-cyan: 0 4px 14px rgba(8, 145, 178, .08);
+      --radius: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 20px;
+    }
+
+    html {
+      font-size: 14px;
+      scroll-behavior: smooth
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+      background-image:
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(79, 70, 229, .04), transparent),
+        radial-gradient(ellipse 60% 40% at 80% 100%, rgba(8, 145, 178, .03), transparent);
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, .15);
+      border-radius: 3px
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(0, 0, 0, .25)
+    }
+
+    /* === HEADER === */
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(255, 255, 255, .9);
+      backdrop-filter: blur(20px) saturate(1.8);
+      border-bottom: 1px solid var(--border-color);
+      padding: 0 2rem;
+    }
+
+    .header-inner {
+      max-width: 1440px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: .75rem
+    }
+
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      box-shadow: var(--glow-blue);
+    }
+
+    .logo-text {
+      font-weight: 700;
+      font-size: 1.1rem;
+      letter-spacing: -.02em
+    }
+
+    .logo-text span {
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .header-status {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-emerald);
+      box-shadow: 0 0 8px var(--accent-emerald);
+      animation: pulse-dot 2s infinite;
+    }
+
+    @keyframes pulse-dot {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: .5
+      }
+    }
+
+    .status-label {
+      font-size: .85rem;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: .5rem
+    }
+
+    .clock {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .85rem;
+      color: var(--text-muted)
+    }
+
+    /* === MAIN === */
+    .main {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 1.5rem 2rem 3rem
+    }
+
+    /* === STATS GRID === */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      position: relative;
+      overflow: hidden;
+      transition: all .3s cubic-bezier(.4, 0, .2, 1);
+    }
+
+    .stat-card:hover {
+      border-color: var(--border-glow);
+      transform: translateY(-2px);
+      box-shadow: var(--glow-blue);
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent-blue), transparent);
+      opacity: 0;
+      transition: opacity .3s;
+    }
+
+    .stat-card:hover::before {
+      opacity: 1
+    }
+
+    .stat-label {
+      font-size: .8rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: .5rem
+    }
+
+    .stat-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .stat-sub {
+      font-size: .75rem;
+      color: var(--text-muted);
+      margin-top: .25rem
+    }
+
+    /* === SECTION TABS === */
+    .tabs {
+      display: flex;
+      gap: .5rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: .5rem;
+    }
+
+    .tab {
+      padding: .6rem 1.2rem;
+      border-radius: var(--radius) var(--radius) 0 0;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-family: 'Inter', sans-serif;
+      font-size: .9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all .25s;
+      position: relative;
+    }
+
+    .tab:hover {
+      color: var(--text-secondary)
+    }
+
+    .tab.active {
+      color: var(--accent-blue);
+      background: rgba(79, 70, 229, .06)
+    }
+
+    .tab.active::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--accent-blue);
+      border-radius: 1px;
+    }
+
+    /* === TABLE === */
+    .table-container {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+
+    .table-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .table-title {
+      font-weight: 600;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: .5rem
+    }
+
+    .table-title .icon {
+      font-size: 1.1rem
+    }
+
+    .refresh-btn {
+      background: rgba(79, 70, 229, .06);
+      border: 1px solid rgba(79, 70, 229, .15);
+      color: var(--accent-blue);
+      padding: .45rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: .8rem;
+      font-weight: 500;
+      transition: all .25s;
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .refresh-btn:hover {
+      background: rgba(79, 70, 229, .12);
+      transform: scale(1.02)
+    }
+
+    .refresh-btn.loading .spin {
+      animation: spin 1s linear infinite
+    }
+
+    @keyframes spin {
+      from {
+        transform: rotate(0)
+      }
+
+      to {
+        transform: rotate(360deg)
+      }
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse
+    }
+
+    thead {
+      background: rgba(0, 0, 0, .02)
+    }
+
+    th {
+      padding: .75rem 1rem;
+      text-align: left;
+      font-size: .75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      font-weight: 600;
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      background: var(--bg-card);
+    }
+
+    th:first-child {
+      padding-left: 1.5rem
+    }
+
+    th:last-child {
+      padding-right: 1.5rem
+    }
+
+    td {
+      padding: .65rem 1rem;
+      font-size: .875rem;
+      border-bottom: 1px solid rgba(0, 0, 0, .05);
+      transition: background .15s;
+    }
+
+    td:first-child {
+      padding-left: 1.5rem
+    }
+
+    td:last-child {
+      padding-right: 1.5rem
+    }
+
+    tr:hover td {
+      background: rgba(79, 70, 229, .03)
+    }
+
+    tr:last-child td {
+      border-bottom: none
+    }
+
+    .rank {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      color: var(--text-muted);
+      font-size: .8rem;
+      width: 28px;
+      height: 28px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      background: rgba(0, 0, 0, .04);
+    }
+
+    .rank.top3 {
+      background: linear-gradient(135deg, rgba(245, 158, 11, .15), rgba(245, 158, 11, .05));
+      color: var(--accent-amber)
+    }
+
+    .symbol {
+      font-weight: 600;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .875rem
+    }
+
+    .clickable-sym {
+      color: var(--accent-indigo);
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
+    .clickable-sym:hover {
+      color: var(--accent-blue);
+      text-decoration: underline;
+    }
+
+    /* Chart Modal */
+    .chart-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      z-index: 10000;
+      display: none;
+      padding: 2rem;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .chart-modal-overlay.active {
+      display: flex;
+    }
+
+    .chart-modal-content {
+      background: var(--bg-card);
+      width: 95%;
+      max-width: 1400px;
+      height: 88vh;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      border: 1px solid var(--border-color);
+    }
+
+    .chart-modal-header {
+      padding: 1rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-color);
+      background: var(--bg-sidebar);
+    }
+
+    .chart-modal-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .chart-modal-close {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+
+    .chart-modal-close:hover {
+      color: var(--text-primary);
+    }
+
+    .chart-container {
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      background: #131722;
+    }
+
+    .price {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 500
+    }
+
+    .change {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      font-size: .85rem
+    }
+
+    .change.positive {
+      color: var(--gain)
+    }
+
+    .change.negative {
+      color: var(--loss)
+    }
+
+    .volume {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-secondary);
+      font-size: .825rem
+    }
+
+    .funding {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      font-size: .825rem
+    }
+
+    .funding.high-pos {
+      color: var(--accent-rose)
+    }
+
+    .funding.high-neg {
+      color: var(--accent-blue)
+    }
+
+    .funding.neutral {
+      color: var(--text-muted)
+    }
+
+    /* === MODULES GRID === */
+    .modules-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .module-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      transition: all .3s cubic-bezier(.4, 0, .2, 1);
+      cursor: pointer;
+    }
+
+    .module-card:hover {
+      border-color: var(--border-glow);
+      transform: translateY(-3px);
+      box-shadow: var(--glow-blue);
+    }
+
+    .module-icon {
+      font-size: 1.8rem;
+      margin-bottom: .75rem;
+      display: block
+    }
+
+    .module-name {
+      font-weight: 600;
+      font-size: .95rem;
+      margin-bottom: .4rem
+    }
+
+    .module-desc {
+      font-size: .8rem;
+      color: var(--text-muted);
+      line-height: 1.5
+    }
+
+    .module-status {
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+      margin-top: .75rem;
+      font-size: .7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      padding: .3rem .6rem;
+      border-radius: 6px;
+      background: rgba(5, 150, 105, .08);
+      color: var(--accent-emerald);
+    }
+
+    /* === EXCHANGES === */
+    .exchanges-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+      gap: .75rem;
+    }
+
+    .exchange-chip {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: .85rem 1rem;
+      text-align: center;
+      transition: all .3s;
+    }
+
+    .exchange-chip:hover {
+      border-color: var(--border-glow);
+      transform: translate(0, -2px);
+      box-shadow: var(--glow-blue)
+    }
+
+    .exchange-name {
+      font-weight: 600;
+      font-size: .875rem;
+      margin-bottom: .35rem
+    }
+
+    .exchange-badges {
+      display: flex;
+      justify-content: center;
+      gap: .35rem;
+      flex-wrap: wrap
+    }
+
+    .badge {
+      font-size: .65rem;
+      padding: .15rem .45rem;
+      border-radius: 4px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    .badge.spot {
+      background: rgba(8, 145, 178, .1);
+      color: var(--accent-cyan)
+    }
+
+    .badge.perp {
+      background: rgba(124, 58, 237, .1);
+      color: var(--accent-purple)
+    }
+
+    .badge.limited {
+      background: rgba(245, 158, 11, .1);
+      color: var(--accent-amber)
+    }
+
+    /* Section Title */
+    .section-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+
+    .section-title .icon {
+      font-size: 1.15rem
+    }
+
+    /* Loading shimmer */
+    .shimmer {
+      background: linear-gradient(90deg, var(--bg-card) 25%, rgba(0, 0, 0, .03) 50%, var(--bg-card) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+    }
+
+    @keyframes shimmer {
+      0% {
+        background-position: 200% 0
+      }
+
+      100% {
+        background-position: -200% 0
+      }
+    }
+
+    .loading-row td {
+      height: 42px
+    }
+
+    .loading-bar {
+      height: 14px;
+      border-radius: 4px;
+      width: 80%
+    }
+
+    /* Responsive */
+    @media(max-width:1024px) {
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr)
+      }
+
+      .main {
+        padding: 1rem
+      }
+
+      .header {
+        padding: 0 1rem
+      }
+    }
+
+    @media(max-width:640px) {
+      .stats-grid {
+        grid-template-columns: 1fr
+      }
+
+      .modules-grid {
+        grid-template-columns: 1fr
+      }
+
+      .exchanges-grid {
+        grid-template-columns: repeat(2, 1fr)
+      }
+
+      .header-status {
+        gap: .75rem
+      }
+    }
+
+    /* Tab content */
+    .tab-content {
+      display: none
+    }
+
+    .tab-content.active {
+      display: block;
+      animation: fadeIn .3s ease
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(6px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    /* Tooltip */
+    .tt {
+      position: relative
+    }
+
+    .tt::after {
+      content: attr(data-tip);
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 50%;
+      transform: translateX(-50%);
+      padding: .35rem .65rem;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-size: .7rem;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s;
+      color: var(--text-secondary);
+      z-index: 10;
+    }
+
+    .tt:hover::after {
+      opacity: 1
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      padding: 2rem 1rem;
+      color: var(--text-muted);
+      font-size: .75rem;
+      border-top: 1px solid var(--border-color);
+      margin-top: 2rem;
+    }
+
+    /* === MODAL === */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-content {
+      background: var(--bg-card);
+      width: 90%;
+      max-width: 500px;
+      border-radius: var(--radius-lg);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+      border: 1px solid var(--border-color);
+      transform: translateY(20px) scale(0.95);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .modal-overlay.active .modal-content {
+      transform: translateY(0) scale(1);
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 1.25rem;
+      right: 1.25rem;
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: color 0.2s;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+    }
+
+    .modal-close:hover {
+      color: var(--text-primary);
+      background: rgba(0, 0, 0, 0.05);
+    }
+
+    .modal-header {
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      background: var(--bg-card-hover);
+    }
+
+    .modal-icon {
+      font-size: 2rem;
+    }
+
+    .modal-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .modal-body {
+      padding: 1.5rem;
+      max-height: 60vh;
+      overflow-y: auto;
+    }
+
+    .feature-list {
+      list-style: none;
+      padding-left: 0;
+      margin: 0;
+    }
+
+    .feature-list li {
+      position: relative;
+      padding-left: 1.75rem;
+      margin-bottom: 0.85rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      font-size: 0.95rem;
+    }
+
+    .feature-list li:last-child {
+      margin-bottom: 0;
+    }
+
+    .feature-list li::before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      top: -1px;
+      color: var(--accent-emerald);
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo">
+        <div class="logo-icon">⚡</div>
+        <div class="logo-text"><span>Crypto Trading</span></div>
+      </div>
+      <div class="header-status">
+        <span class="status-label"><span class="status-dot"></span> 实时连接</span>
+        <span class="clock" id="clock">--:--:--</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- STATS -->
+    <section class="stats-grid" id="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">币安合约 24H总成交量</div>
+        <div class="stat-value" id="stat-volume">--</div>
+        <div class="stat-sub" id="stat-volume-sub">计算中...</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">大盘恐慌&贪婪指数</div>
+        <div class="stat-value" id="stat-fng">--</div>
+        <div class="stat-sub" id="stat-fng-sub">正在拉取...</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">BTC 价格</div>
+        <div class="stat-value" id="stat-btc">--</div>
+        <div class="stat-sub" id="stat-btc-change">--</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">ETH 价格</div>
+        <div class="stat-value" id="stat-eth">--</div>
+        <div class="stat-sub" id="stat-eth-change">--</div>
+      </div>
+    </section>
+
+    <!-- TABS -->
+    <div class="tabs" id="tabs">
+      <button class="tab active" data-tab="market" id="tab-market">🔥 币安合约</button>
+      <button class="tab" data-tab="otherhot" id="tab-otherhot">🌟 热门新币</button>
+      <button class="tab" data-tab="grid" id="tab-grid">📉 网格交易</button>
+      <button class="tab" data-tab="wash" id="tab-wash">🤖 刷量交易</button>
+      <button class="tab" data-tab="arbitrage" id="tab-arbitrage">⚖️ 套利监控</button>
+      <button class="tab" data-tab="alerts" id="tab-alerts">🔔 价格提醒</button>
+      <button class="tab" data-tab="scanner" id="tab-scanner">🔎 波动率扫描</button>
+    </div>
+
+    <!-- TAB: MARKET -->
+    <div class="tab-content active" id="content-market">
+      <div class="table-container">
+        <div class="table-header">
+          <div class="table-title"><span class="icon">📊</span> Binance 合约 24H 涨幅 Top 100</div>
+          <button class="refresh-btn" id="btn-refresh-tickers" onclick="loadTickers()">
+            <span class="spin">↻</span> 刷新数据
+          </button>
+        </div>
+        <div id="ticker-scroll-area" style="overflow-x:auto;max-height:620px;overflow-y:auto">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:50px">#</th>
+                <th>交易对</th>
+                <th>最新价格</th>
+                <th style="cursor:pointer; user-select:none;" onclick="toggleSort()" title="点击切换涨跌序">24H涨跌 <span
+                    id="sort-arrow" style="font-size:0.8rem; margin-left:4px;">▼</span></th>
+                <th>24H最高</th>
+                <th>24H最低</th>
+                <th>资金费率 / 结算周期</th>
+                <th>账户多空比(L/S)</th>
+                <th>24H成交额</th>
+              </tr>
+            </thead>
+            <tbody id="ticker-tbody">
+              <tr>
+                <td colspan="9" style="text-align:center;padding:2rem;color:var(--text-muted)">加载中 ...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: OTHER HOT -->
+    <div class="tab-content" id="content-otherhot">
+      <div class="table-container">
+        <div class="table-header">
+          <div class="table-title"><span class="icon">🌟</span> 热门新币监控 (暂无资金费率/待上线)</div>
+          <button class="refresh-btn" onclick="loadTickers()">
+            <span class="spin">↻</span> 刷新数据
+          </button>
+        </div>
+        <div style="overflow-x:auto;max-height:620px;overflow-y:auto">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:50px">#</th>
+                <th>交易对</th>
+                <th>最新价格</th>
+                <th style="cursor:pointer; user-select:none;" onclick="toggleSort()" title="点击切换涨跌序">24H涨跌 <span
+                    id="sort-arrow-other" style="font-size:0.8rem; margin-left:4px;">▼</span></th>
+                <th>24H最高</th>
+                <th>24H最低</th>
+                <th>账户多空比(L/S)</th>
+                <th>24H成交额</th>
+              </tr>
+            </thead>
+            <tbody id="other-hot-tbody">
+              <tr>
+                <td colspan="8" style="text-align:center;padding:2rem;color:var(--text-muted)">加载中 ...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Removed TAB: FUNDING -->
+    <!-- Removed TAB: MODULES & EXCHANGES -->
+
+    <!-- TAB: GRID TRADING -->
+    <div class="tab-content" id="content-grid">
+      <div class="table-container">
+        <div class="table-header">
+          <div class="table-title"><span class="icon">📉</span> 主流币种网格实时收益预估 (基于24H波动及深度回测模型)</div>
+          <button class="refresh-btn" id="btn-refresh-grid" onclick="loadGridBacktest()">
+            <span class="spin">↻</span> 重新测算
+          </button>
+        </div>
+        <div style="overflow-x:auto;max-height:620px;overflow-y:auto">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:50px">#</th>
+                <th>交易对</th>
+                <th>最新价 / 24H 涨跌</th>
+                <th>做多网格预期 (APR)</th>
+                <th>做空网格预期 (APR)</th>
+                <th style="text-align:right">一键部署</th>
+              </tr>
+            </thead>
+            <tbody id="grid-tbody">
+              <tr>
+                <td colspan="6" style="text-align:center;padding:2rem;color:var(--text-muted)">正在进行大数据回测分析中 ...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: WASH -->
+    <div class="tab-content" id="content-wash">
+      <div class="table-container">
+        <div class="table-header">
+          <div class="table-title"><span class="icon">🤖</span> 刷量交易系统监控 (基于 Backpack / Lighter)</div>
+          <button class="refresh-btn" onclick="loadMockData('/api/wash/status', 'wash-tbody', renderWash)"><span
+              class="spin">↻</span> 刷新数据</button>
+        </div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:50px">#</th>
+                <th>交易对</th>
+                <th>运行模式</th>
+                <th>目标交易量</th>
+                <th>已完成进度</th>
+                <th>状态</th>
+                <th style="text-align:right">操作</th>
+              </tr>
+            </thead>
+            <tbody id="wash-tbody">
+              <tr>
+                <td colspan="7" style="text-align:center;padding:2rem;">加载中...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: ARBITRAGE -->
+    <div class="tab-content" id="content-arbitrage">
+      <div class="table-container">
+        <div class="table-header">
+          <div class="table-title"><span class="icon">⚖️</span> 实时套利机会 (分段、跨平台、跨币种)</div>
+          <button class="refresh-btn"
+            onclick="loadMockData('/api/arbitrage/opportunities', 'arb-tbody', renderArbitrage)"><span
+              class="spin">↻</span> 刷新数据</button>
+        </div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:50px">#</th>
+                <th>套利类型</th>
+                <th>交易对</th>
+                <th>A所价</th>
+                <th>B所价</th>
+                <th>预估价差</th>
+                <th style="text-align:right">操作</th>
+              </tr>
+            </thead>
+            <tbody id="arb-tbody">
+              <tr>
+                <td colspan="7" style="text-align:center;padding:2rem;">加载中...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: ALERTS -->
+    <div class="tab-content" id="content-alerts">
+      <div class="table-container">
+        <div class="table-header">
+          <div class="table-title"><span class="icon">🔔</span> 智能价格 & 异常深度监控提醒</div>
+          <button class="refresh-btn" onclick="loadMockData('/api/alerts/list', 'alerts-tbody', renderAlerts)"><span
+              class="spin">↻</span> 刷新数据</button>
+        </div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:50px">#</th>
+                <th>监控标的</th>
+                <th>触发条件</th>
+                <th>目标数值</th>
+                <th>当前状态</th>
+                <th>通知方式</th>
+                <th style="text-align:right">操作</th>
+              </tr>
+            </thead>
+            <tbody id="alerts-tbody">
+              <tr>
+                <td colspan="7" style="text-align:center;padding:2rem;">加载中...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: SCANNER -->
+    <div class="tab-content" id="content-scanner">
+      <div class="table-container">
+        <div class="table-header">
+          <div class="table-title"><span class="icon">🔎</span> 极速异动扫描预警 (毫秒级检测)</div>
+          <button class="refresh-btn"
+            onclick="loadMockData('/api/scanner/events', 'scanner-tbody', renderScanner)"><span class="spin">↻</span>
+            刷新数据</button>
+        </div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:50px">#</th>
+                <th>交易对</th>
+                <th>监控窗口</th>
+                <th>瞬时波动率</th>
+                <th>方向及动作</th>
+                <th>捕获时间</th>
+                <th style="text-align:right">操作</th>
+              </tr>
+            </thead>
+            <tbody id="scanner-tbody">
+              <tr>
+                <td colspan="7" style="text-align:center;padding:2rem;">加载中...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="footer">
+    多交易所策略自动化系统 &copy; 2025 &mdash; 企业级加密货币自动化交易系统
+  </footer>
+
+  <!-- MODAL -->
+  <div class="modal-overlay" id="module-modal">
+    <div class="modal-content">
+      <button class="modal-close" id="modal-close">&times;</button>
+      <div class="modal-header">
+        <div class="modal-icon" id="modal-icon"></div>
+        <div class="modal-title" id="modal-title"></div>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- CHART MODAL -->
+  <div class="chart-modal-overlay" id="chart-modal">
+    <div class="chart-modal-content">
+      <div class="chart-modal-header">
+        <div class="chart-modal-title" id="chart-modal-title"></div>
+        <button class="chart-modal-close" onclick="closeChart()">&times;</button>
+      </div>
+      <div style="display:flex; flex:1; overflow:hidden;">
+        <div id="tv-chart-container" class="chart-container"
+          style="flex: 3; border-right: 1px solid var(--border-color);"></div>
+        <div id="ai-analysis-container"
+          style="flex: 1; min-width: 300px; padding: 1.5rem; background: var(--bg-card); overflow-y: auto;">
+          <h3
+            style="margin-top:0; color: var(--text-primary); display:flex; align-items:center; gap:0.5rem; font-size: 1.1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+            <span class="icon">🤖</span> AI 行情辅助分析
+          </h3>
+          <div id="ai-analysis-content"
+            style="color: var(--text-secondary); line-height: 1.6; font-size: 0.95rem; margin-top: 1rem;">
+            正在深度扫描并构建博弈模型...
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://s3.tradingview.com/tv.js"></script>
+  <script>
+    // === State ===
+    let systemModulesData = [];
+    let allTickersData = [];
+    let otherHotData = [];
+    let tickersDisplayCount = 30; // Max items to display initially
+    let currentSort = 'desc';
+
+    function applySort(data) {
+      if (!data) return;
+      data.sort((a, b) => currentSort === 'desc' ? b.change24h - a.change24h : a.change24h - b.change24h);
+      data.forEach((t, i) => t.rank = i + 1);
+    }
+
+    function toggleSort() {
+      currentSort = currentSort === 'desc' ? 'asc' : 'desc';
+      const arrow1 = document.getElementById('sort-arrow');
+      if (arrow1) arrow1.textContent = currentSort === 'desc' ? '▼' : '▲';
+      const arrow2 = document.getElementById('sort-arrow-other');
+      if (arrow2) arrow2.textContent = currentSort === 'desc' ? '▼' : '▲';
+
+      applySort(allTickersData);
+      applySort(otherHotData);
+
+      tickersDisplayCount = 30; // Reset scroll count on sort
+      renderTickers();
+    }
+
+    // === Utilities ===
+    function fmt(num, dec = 4) {
+      if (num === null || num === undefined) return '--';
+      return Number(num).toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+    }
+    function fmtVol(n) {
+      if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B';
+      if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
+      if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+      return n.toFixed(0);
+    }
+    function fmtCountdown(ms) {
+      if (!ms || ms <= 0) return '--';
+      const now = Date.now();
+      let diff = ms - now;
+      if (diff < 0) diff = 0;
+      const h = Math.floor(diff / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      return `${h}h ${m}m ${s}s`;
+    }
+
+    function getExchangeTvPrefix(exchangeName) {
+      if (!exchangeName) return 'BINANCE';
+      const ex = String(exchangeName).toUpperCase();
+      if (ex.includes('OKX')) return 'OKX';
+      if (ex.includes('BYBIT')) return 'BYBIT';
+      if (ex.includes('GATE')) return 'GATEIO';
+      if (ex.includes('KUCOIN')) return 'KUCOIN';
+      if (ex.includes('MEXC')) return 'MEXC';
+      if (ex.includes('MEEX')) return 'MEXC'; // fallback since TV doesn't track MEEX
+      return 'BINANCE';
+    }
+
+    function openChart(rawSymbol, exchange = 'BINANCE') {
+      const sym = String(rawSymbol).replace('/', '');
+      const prefix = getExchangeTvPrefix(exchange);
+
+      // For Binance, K-lines for perpetual contracts in TradingView are strictly accessed with a '.P' suffix.
+      // Coins like YALA, PIPPIN are usually futures-only initially, so 'BINANCE:YALAUSDT' will return 'Symbol not found'
+      // while 'BINANCE:YALAUSDT.P' will successfully display the futures K-line.
+      let tvSymbol = `${prefix}:${sym}`;
+      if (prefix === 'BINANCE' && rawSymbol.includes('USDT')) {
+        // Special fallback for 1000x futures contracts which use PERP instead of .P
+        if (sym.startsWith('1000')) {
+          tvSymbol = `${prefix}:${sym}PERP`;
+        } else {
+          tvSymbol = `${prefix}:${sym}.P`; // Always use .P for Binance USDT futures to ensure compatibility with newly listed contracts
+        }
+      }
+
+      document.getElementById('chart-modal-title').innerHTML = `<span class="icon">📈</span> ${rawSymbol} 专业分析图表 (MACD & BOLL) - ${prefix}`;
+      document.getElementById('chart-modal').classList.add('active');
+      document.getElementById('tv-chart-container').innerHTML = '';
+
+      new TradingView.widget({
+        "autosize": true,
+        "symbol": tvSymbol,
+        "interval": "15",
+        "timezone": "Asia/Shanghai",
+        "theme": "light",
+        "style": "1",
+        "locale": "zh_CN",
+        "enable_publishing": false,
+        "backgroundColor": "#ffffff",
+        "gridColor": "#f1f3f6",
+        "hide_top_toolbar": false,
+        "hide_legend": false,
+        "save_image": false,
+        "container_id": "tv-chart-container",
+        "studies": [
+          "BB@tv-basicstudies",
+          "MACD@tv-basicstudies"
+        ]
+      });
+
+      // Fetch AI Analysis
+      const aiContainer = document.getElementById('ai-analysis-content');
+      aiContainer.innerHTML = '正在极速同步切片数据并唤醒深度分析引擎...';
+
+      fetch('/api/ai/analysis?symbol=' + encodeURIComponent(rawSymbol))
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.analysis) {
+            aiContainer.innerHTML = data.analysis;
+          } else {
+            aiContainer.innerHTML = '<span style="color:var(--loss)">模型生成超时，请稍后再试。</span>';
+          }
+        })
+        .catch(err => {
+          aiContainer.innerHTML = '<span style="color:var(--loss)">网络连接中断，无法触达分析核心。</span>';
+        });
+    }
+
+    function closeChart() {
+      document.getElementById('chart-modal').classList.remove('active');
+      document.getElementById('tv-chart-container').innerHTML = '';
+    }
+
+    // === Clock ===
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('clock').textContent =
+        now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // === Tabs ===
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById('content-' + tab.dataset.tab).classList.add('active');
+      });
+    });
+
+    // === Load Tickers ===
+    function renderTickers() {
+      const tbody = document.getElementById('ticker-tbody');
+      const otherBody = document.getElementById('other-hot-tbody');
+
+      if (!allTickersData || allTickersData.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--text-muted)">暂无数据</td></tr>';
+      } else {
+        const displayData = allTickersData.slice(0, tickersDisplayCount);
+        tbody.innerHTML = displayData.map(t => generateTickerRow(t)).join('');
+      }
+
+      if (!otherHotData || otherHotData.length === 0) {
+        otherBody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--text-muted)">暂无数据</td></tr>';
+      } else {
+        otherBody.innerHTML = otherHotData.map(t => generateTickerRow(t, false, false)).join('');
+      }
+    }
+
+    function generateTickerRow(t, top3Rank = true, showFunding = true) {
+      const chgClass = t.change24h >= 0 ? 'positive' : 'negative';
+      const chgSign = t.change24h >= 0 ? '+' : '';
+      const rankClass = (top3Rank && t.rank <= 3) ? 'rank top3' : 'rank';
+
+      // Funding rate formatting
+      const rate = t.fundingRate || 0;
+      const rateStr = (rate >= 0 ? '+' : '') + (rate * 100).toFixed(4) + '%';
+      let fundColor = 'var(--text-primary)';
+      if (rate > 0) fundColor = 'var(--gain)';
+      else if (rate < 0) fundColor = 'var(--loss)';
+
+      const fundingIntervalTxt = t.fundingInterval ? `${t.fundingInterval}H` : '8H';
+
+      let lsHtml = '<span style="color:var(--text-muted);font-size:0.85rem">--/--</span>';
+      if (t.lsRatio && (t.lsRatio.ratio > 0 || t.lsRatio.long > 0)) {
+        const lr = t.lsRatio;
+        const displayRatio = lr.ratio === 9999.0 ? '极高' : lr.ratio.toFixed(2);
+        const lsColor = (lr.ratio > 1 || lr.ratio === 9999.0) ? 'var(--gain)' : 'var(--loss)';
+        lsHtml = `
+          <span style="color:${lsColor};font-weight:600">${displayRatio}</span><br>
+          <div style="display:flex;width:100%;height:4px;border-radius:2px;overflow:hidden;margin-top:2px;" title="多头 ${lr.long.toFixed(1)}% / 空头 ${lr.short.toFixed(1)}%">
+            <div style="width:${lr.long}%;background:var(--gain);"></div>
+            <div style="width:${lr.short}%;background:var(--loss);"></div>
+          </div>
+        `;
+      }
+
+      const fundingHtml = showFunding ? `<td>
+        <span style="color:${fundColor}; font-weight:600;">${rateStr}</span><br>
+        <span style="font-size:0.75rem; color:var(--text-muted)">${fundingIntervalTxt}</span>
+      </td>` : '';
+
+      return `<tr>
+      <td><span class="${rankClass}">${t.rank}</span></td>
+      <td class="symbol clickable-sym" onclick="openChart('${t.symbol}')" title="点击查看专业 K 线及指标分析">${t.symbol}</td>
+      <td class="price">$${fmt(t.price)}</td>
+      <td class="change ${chgClass}">${chgSign}${t.change24h.toFixed(2)}%</td>
+      <td class="price">$${fmt(t.high24h)}</td>
+      <td class="price">$${fmt(t.low24h)}</td>
+      ${fundingHtml}
+      <td style="min-width:90px; vertical-align: middle;">${lsHtml}</td>
+      <td class="volume">$${fmtVol(t.volume24h)}</td>
+    </tr>`;
+    }
+
+    // Scroll listener for infinite load
+    document.getElementById('ticker-scroll-area').addEventListener('scroll', function (e) {
+      if (this.scrollTop + this.clientHeight >= this.scrollHeight - 50) {
+        if (tickersDisplayCount < allTickersData.length) {
+          tickersDisplayCount += 30;
+          if (tickersDisplayCount > allTickersData.length) tickersDisplayCount = allTickersData.length;
+          renderTickers();
+        }
+      }
+    });
+
+    async function loadTickers() {
+      const btn = document.getElementById('btn-refresh-tickers');
+      btn.classList.add('loading');
+      try {
+        const res = await fetch('/api/binance/tickers');
+        const json = await res.json();
+        allTickersData = json.data || [];
+        otherHotData = json.other || [];
+
+        applySort(allTickersData);
+        applySort(otherHotData);
+
+        // Update BTC/ETH stat cards from top 100
+        const btcData = allTickersData.find(d => d.symbol === 'BTC/USDT');
+        const ethData = allTickersData.find(d => d.symbol === 'ETH/USDT');
+        if (btcData) {
+          document.getElementById('stat-btc').textContent = '$' + fmt(btcData.price, 2);
+          const c = btcData.change24h;
+          document.getElementById('stat-btc-change').textContent = (c >= 0 ? '+' : '') + c.toFixed(2) + '%';
+          document.getElementById('stat-btc-change').style.color = c >= 0 ? 'var(--gain)' : 'var(--loss)';
+        }
+        if (ethData) {
+          document.getElementById('stat-eth').textContent = '$' + fmt(ethData.price, 2);
+          const c = ethData.change24h;
+          document.getElementById('stat-eth-change').textContent = (c >= 0 ? '+' : '') + c.toFixed(2) + '%';
+          document.getElementById('stat-eth-change').style.color = c >= 0 ? 'var(--gain)' : 'var(--loss)';
+        }
+
+        // Update Total Volume
+        if (json.total_volume) {
+          document.getElementById('stat-volume').textContent = '$' + fmtVol(json.total_volume);
+        }
+        if (json.volume_change !== undefined) {
+          const c = json.volume_change;
+          const volSub = document.getElementById('stat-volume-sub');
+          volSub.textContent = (c >= 0 ? '+' : '') + c.toFixed(2) + '%';
+          volSub.style.color = c >= 0 ? 'var(--gain)' : 'var(--loss)';
+          volSub.style.fontWeight = '600';
+        }
+
+        renderTickers();
+      } catch (e) {
+        console.error('Failed to load tickers:', e);
+        document.getElementById('ticker-tbody').innerHTML =
+          `<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--accent-rose)">加载失败: ${e.message}</td></tr>`;
+      } finally {
+        btn.classList.remove('loading');
+      }
+    }
+
+    async function loadFNG() {
+      try {
+        const res = await fetch('/api/market/fng');
+        const json = await res.json();
+
+        const fngVal = document.getElementById('stat-fng');
+        const fngSub = document.getElementById('stat-fng-sub');
+
+        fngVal.textContent = json.value;
+        const c = json.change24h !== undefined ? Number(json.change24h) : 0;
+        fngSub.textContent = (c >= 0 ? '+' : '') + c.toFixed(2) + '% 24H变化';
+        fngSub.style.color = c >= 0 ? 'var(--gain)' : 'var(--loss)';
+        fngSub.style.fontWeight = '600';
+
+        if (json.value <= 25) fngVal.style.color = 'var(--loss)'; // Extreme Fear
+        else if (json.value <= 45) fngVal.style.color = '#ff9800'; // Fear
+        else if (json.value <= 55) fngVal.style.color = 'var(--text-primary)'; // Neutral
+        else if (json.value <= 75) fngVal.style.color = 'var(--gain)'; // Greed
+        else fngVal.style.color = 'var(--accent-emerald)'; // Extreme Greed
+
+      } catch (e) {
+        console.error('Failed to load FNG:', e);
+        document.getElementById('stat-fng-sub').textContent = '数据获取失败';
+      }
+    }
+
+    // === Load System Info ===
+    async function loadSystemInfo() {
+      try {
+        const res = await fetch('/api/system/info');
+        const info = await res.json();
+
+        // (Modules and Exchanges sections have been removed from UI)
+
+        // Removed old stat-exchanges/stat-strategies updates
+      } catch (e) {
+        console.error('Failed to load system info:', e);
+      }
+    }
+
+    // === Load Grid Backtest ===
+    async function loadGridBacktest() {
+      const btn = document.getElementById('btn-refresh-grid');
+      if (btn) btn.classList.add('loading');
+      try {
+        const res = await fetch('/api/grid/backtest');
+        const json = await res.json();
+        const data = json.data || [];
+        const tbody = document.getElementById('grid-tbody');
+
+        if (!data.length) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text-muted)">无法获取回测数据</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = data.map((t, idx) => {
+          const rankClass = t.rank <= 3 ? 'rank top3' : 'rank';
+
+          let longColor = 'var(--text-primary)';
+          if (t.long_apr > 150) longColor = 'var(--accent-rose)'; // Extremely high
+          else if (t.long_apr > 50) longColor = 'var(--gain)';
+
+          let shortColor = 'var(--text-primary)';
+          if (t.short_apr > 150) shortColor = 'var(--accent-rose)';
+          else if (t.short_apr > 50) shortColor = 'var(--gain)';
+
+          return `<tr>
+        <td><span class="${rankClass}">${t.rank}</span></td>
+        <td class="symbol clickable-sym" onclick="openChart('${t.symbol}')" title="点击查看并分析测算该币种 K 线">${t.symbol}</td>
+        <td>
+          <span class="price">$${fmt(t.price)}</span><br>
+          <span style="font-size:0.8rem;font-weight:600;color:${t.change24h >= 0 ? 'var(--gain)' : 'var(--loss)'}">${t.change24h >= 0 ? '+' : ''}${t.change24h.toFixed(2)}%</span>
+        </td>
+        <td>
+          <span style="font-weight:700; color:${longColor}">${t.long_apr.toFixed(2)}%</span>
+          <br><span style="font-size:0.7rem;color:var(--text-muted)">含 ${t.change24h > 0 ? '+' : ''}${t.change24h.toFixed(2)}% 趋势增强</span>
+        </td>
+         <td>
+          <span style="font-weight:700; color:${shortColor}">${t.short_apr.toFixed(2)}%</span>
+          <br><span style="font-size:0.7rem;color:var(--text-muted)">含 ${-t.change24h > 0 ? '+' : ''}${(-t.change24h).toFixed(2)}% 趋势增强</span>
+        </td>
+        <td style="text-align:right">
+          <div style="display:inline-flex;gap:4px">
+            <button onclick="alert('已选择做多 ${t.symbol}；即将调用 /tools 自动生成配置并提交远端系统运行。')" style="background:var(--gain);color:#fff;border:none;padding:0.4rem 0.6rem;border-radius:6px;cursor:pointer;font-weight:600;font-size:0.75rem;">做多</button>
+            <button onclick="alert('已选择做空 ${t.symbol}；即将调用 /tools 自动生成配置并提交远端系统运行。')" style="background:var(--loss);color:#fff;border:none;padding:0.4rem 0.6rem;border-radius:6px;cursor:pointer;font-weight:600;font-size:0.75rem;">做空</button>
+          </div>
+        </td>
+      </tr>`;
+        }).join('');
+      } catch (e) {
+        console.error('Failed to run grid backtest:', e);
+      } finally {
+        if (btn) btn.classList.remove('loading');
+      }
+    }
+
+    // === Modal Logic ===
+    function openModuleModal(idx) {
+      const m = systemModulesData[idx];
+      if (!m) return;
+      document.getElementById('modal-icon').innerHTML = m.icon;
+      document.getElementById('modal-title').textContent = m.name;
+
+      let featuresHtml = '<ul class="feature-list">';
+      if (m.features && m.features.length) {
+        m.features.forEach(f => {
+          featuresHtml += `<li>${f}</li>`;
+        });
+      } else {
+        featuresHtml += `<li>强大的底层驱动与性能优化。</li>`;
+      }
+      featuresHtml += '</ul>';
+
+      document.getElementById('modal-body').innerHTML = featuresHtml;
+      document.getElementById('module-modal').classList.add('active');
+    }
+
+    document.getElementById('modal-close').addEventListener('click', () => {
+      document.getElementById('module-modal').classList.remove('active');
+    });
+    document.getElementById('module-modal').addEventListener('click', (e) => {
+      if (e.target === document.getElementById('module-modal')) {
+        document.getElementById('module-modal').classList.remove('active');
+      }
+    });
+
+    // === Auto-refresh funding countdown ===
+    setInterval(() => {
+      // Re-render countdown timers without re-fetching
+      document.querySelectorAll('.funding-countdown').forEach(el => {
+        const ts = parseInt(el.dataset.ts);
+        el.textContent = fmtCountdown(ts);
+      });
+    }, 1000);
+
+    // === New Module Loaders ===
+    async function loadMockData(url, tbodyId, renderFn) {
+      try {
+        const res = await fetch(url);
+        const json = await res.json();
+        const tbody = document.getElementById(tbodyId);
+        if (!json.data || !json.data.length) {
+          tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:2rem;color:var(--text-muted)">暂无数据</td></tr>';
+          return;
+        }
+        tbody.innerHTML = json.data.map(renderFn).join('');
+      } catch (e) {
+        document.getElementById(tbodyId).innerHTML = `<tr><td colspan="10" style="text-align:center;color:var(--accent-rose);">加载失败: ${e.message}</td></tr>`;
+      }
+    }
+
+    const renderWash = d => `<tr>
+      <td>${d.id}</td><td class="symbol clickable-sym" onclick="openChart('${d.pair}')" title="查看交易对 K 线">${d.pair}</td><td>${d.mode}</td><td>${d.target}</td>
+      <td>
+         <div style="background:#2d2d3d; width:100px; height:6px; border-radius:3px; overflow:hidden; margin-bottom:4px">
+            <div style="width:${d.progress}; background:${d.color}; height:100%;"></div>
+         </div><span style="font-size:0.75rem; color:var(--text-muted)">${d.progress}</span>
+      </td>
+      <td style="color:${d.color}; font-weight:600;">${d.status}</td>
+      <td style="text-align:right"><button class="refresh-btn" style="padding:0.3rem 0.6rem;font-size:0.75rem;">一键起停</button></td>
+    </tr>`;
+
+    const renderArbitrage = d => `<tr>
+      <td>${d.id}</td><td>${d.type}</td><td class="symbol clickable-sym" onclick="openChart('${d.pair}', '${d.exchange_a}')" title="对比 K 线状态分析价差">${d.pair}</td><td>${d.exchange_a}</td><td>${d.exchange_b}</td>
+      <td style="color:var(--gain); font-weight:600">${d.spread}</td>
+      <td style="text-align:right"><button class="refresh-btn" style="padding:0.3rem 0.6rem; background:var(--gain); color:#fff; border:none; font-size:0.75rem;">${d.action}</button></td>
+    </tr>`;
+
+    const renderAlerts = d => `<tr>
+      <td>${d.id}</td><td class="symbol clickable-sym" onclick="openChart('${d.pair}')" title="查看布控的走势位">${d.pair}</td><td style="color:var(--text-muted)">${d.condition}</td>
+      <td style="font-weight:600">${d.target}</td><td style="color:${d.color}">${d.distance}</td><td>${d.notify}</td>
+      <td style="text-align:right"><button class="refresh-btn" style="padding:0.3rem 0.6rem; color:var(--accent-rose); font-size:0.75rem;">取消监控</button></td>
+    </tr>`;
+
+    const renderScanner = d => `<tr>
+      <td>${d.id}</td><td class="symbol clickable-sym" onclick="openChart('${d.pair}')" title="查看波动发生瞬间的图线特征">${d.pair}</td><td>${d.window}</td>
+      <td style="color:${d.color}; font-weight:600">${d.volatility}</td><td style="color:${d.color}">${d.direction}</td>
+      <td style="color:var(--text-muted)">${d.time}</td>
+      <td style="text-align:right"><button class="refresh-btn" style="padding:0.3rem 0.6rem; font-size:0.75rem;" onclick="openChart('${d.pair}')">查看 K 线</button></td>
+    </tr>`;
+
+    // === Init ===
+    async function loadBtcEth() {
+      try {
+        const res = await fetch('/api/binance/btc_eth');
+        const data = await res.json();
+        if (data.btc && data.btc.price) {
+          document.getElementById('stat-btc').textContent = '$' + fmt(data.btc.price, 2);
+          const c = data.btc.change;
+          document.getElementById('stat-btc-change').textContent = (c >= 0 ? '+' : '') + c.toFixed(2) + '%';
+          document.getElementById('stat-btc-change').style.color = c >= 0 ? 'var(--gain)' : 'var(--loss)';
+        }
+        if (data.eth && data.eth.price) {
+          document.getElementById('stat-eth').textContent = '$' + fmt(data.eth.price, 2);
+          const c = data.eth.change;
+          document.getElementById('stat-eth-change').textContent = (c >= 0 ? '+' : '') + c.toFixed(2) + '%';
+          document.getElementById('stat-eth-change').style.color = c >= 0 ? 'var(--gain)' : 'var(--loss)';
+        }
+      } catch (e) { console.error('BTC/ETH load error:', e); }
+    }
+
+    loadBtcEth();
+    loadTickers();
+    loadGridBacktest();
+    loadSystemInfo();
+    loadFNG();
+
+    // Load productized modules data
+    loadMockData('/api/wash/status', 'wash-tbody', renderWash);
+    loadMockData('/api/arbitrage/opportunities', 'arb-tbody', renderArbitrage);
+    loadMockData('/api/alerts/list', 'alerts-tbody', renderAlerts);
+    loadMockData('/api/scanner/events', 'scanner-tbody', renderScanner);
+
+    // Auto-refresh every 15 seconds
+    setInterval(loadBtcEth, 15000);
+    setInterval(loadTickers, 15000);
+    setInterval(loadFNG, 60000); // Fear & Greed updates less frequently
+  </script>
+
+</body>
+
+</html>
