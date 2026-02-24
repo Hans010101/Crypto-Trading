@@ -239,13 +239,57 @@
       margin-top: .25rem
     }
 
-    /* === SECTION TABS === */
+    /* === SECTION TABS & SEARCH === */
+    .tabs-area {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 1.5rem;
+      padding-bottom: .5rem;
+    }
+
     .tabs {
       display: flex;
       gap: .5rem;
-      margin-bottom: 1.5rem;
-      border-bottom: 1px solid var(--border-color);
-      padding-bottom: .5rem;
+    }
+
+    /* Search Box */
+    .search-box {
+      position: relative;
+      display: flex;
+      align-items: center;
+      background: var(--surface-light);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 0.4rem 0.8rem;
+      width: 250px;
+      transition: all 0.3s;
+    }
+
+    .search-box:focus-within {
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 2px rgba(67, 97, 238, 0.1);
+    }
+
+    .search-icon {
+      color: var(--text-muted);
+      margin-right: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .search-input {
+      border: none;
+      background: transparent;
+      outline: none;
+      color: var(--text-primary);
+      width: 100%;
+      font-size: 0.9rem;
+    }
+
+    .search-input::placeholder {
+      color: #9ca3af;
+      opacity: 1;
     }
 
     .tab {
@@ -959,15 +1003,28 @@
       </div>
     </section>
 
-    <!-- TABS -->
-    <div class="tabs" id="tabs">
-      <button class="tab active" data-tab="market" id="tab-market">🔥 币安合约</button>
-      <button class="tab" data-tab="otherhot" id="tab-otherhot">🌟 热门新币</button>
-      <button class="tab" data-tab="grid" id="tab-grid">📉 网格交易</button>
-      <button class="tab" data-tab="wash" id="tab-wash">🤖 刷量交易</button>
-      <button class="tab" data-tab="arbitrage" id="tab-arbitrage">⚖️ 套利监控</button>
-      <button class="tab" data-tab="alerts" id="tab-alerts">🔔 价格提醒</button>
-      <button class="tab" data-tab="scanner" id="tab-scanner">🔎 波动率扫描</button>
+    <!-- TABS & SEARCH -->
+    <div class="tabs-area">
+      <div class="tabs" id="tabs">
+        <button class="tab active" data-tab="market" id="tab-market">🔥 币安合约</button>
+        <button class="tab" data-tab="otherhot" id="tab-otherhot">🌟 热门新币</button>
+        <button class="tab" data-tab="grid" id="tab-grid">📉 网格交易</button>
+        <button class="tab" data-tab="wash" id="tab-wash">🤖 刷量交易</button>
+        <button class="tab" data-tab="arbitrage" id="tab-arbitrage">⚖️ 套利监控</button>
+        <button class="tab" data-tab="alerts" id="tab-alerts">🔔 价格提醒</button>
+        <button class="tab" data-tab="scanner" id="tab-scanner">🔎 波动率扫描</button>
+      </div>
+      <div class="search-box">
+        <span class="search-icon">
+          <svg style="margin-top:2px;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </span>
+        <input type="text" id="token-search-input" class="search-input" placeholder="搜索全站代币 (如 BTC, ETH, SOL)..."
+          autocomplete="off">
+      </div>
     </div>
 
     <!-- TAB: MARKET -->
@@ -1390,6 +1447,8 @@
     });
 
     // === Load Tickers ===
+    let currentSearchQuery = '';
+
     function renderTickers() {
       const tbody = document.getElementById('ticker-tbody');
       const otherBody = document.getElementById('other-hot-tbody');
@@ -1397,14 +1456,30 @@
       if (!allTickersData || allTickersData.length === 0) {
         tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--text-muted)">暂无数据</td></tr>';
       } else {
-        const displayData = allTickersData.slice(0, tickersDisplayCount);
-        tbody.innerHTML = displayData.map(t => generateTickerRow(t)).join('');
+        let displayData = allTickersData;
+        if (currentSearchQuery) {
+          displayData = displayData.filter(t => t.symbol.includes(currentSearchQuery));
+        }
+        displayData = displayData.slice(0, currentSearchQuery ? 100 : tickersDisplayCount);
+        if (displayData.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--text-muted)">未找到匹配的交易对</td></tr>';
+        } else {
+          tbody.innerHTML = displayData.map(t => generateTickerRow(t, !currentSearchQuery)).join('');
+        }
       }
 
       if (!otherHotData || otherHotData.length === 0) {
         otherBody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--text-muted)">暂无数据</td></tr>';
       } else {
-        otherBody.innerHTML = otherHotData.map(t => generateTickerRow(t, false, false)).join('');
+        let displayOther = otherHotData;
+        if (currentSearchQuery) {
+          displayOther = displayOther.filter(t => t.symbol.includes(currentSearchQuery));
+        }
+        if (displayOther.length === 0) {
+          otherBody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--text-muted)">未找到匹配的交易对</td></tr>';
+        } else {
+          otherBody.innerHTML = displayOther.map(t => generateTickerRow(t, false, false)).join('');
+        }
       }
     }
 
@@ -1732,6 +1807,16 @@
     setInterval(loadBtcEth, 15000);
     setInterval(loadTickers, 15000);
     setInterval(loadFNG, 60000); // Fear & Greed updates less frequently
+
+    // === SEARCH LOGIC ===
+    const searchInput = document.getElementById('token-search-input');
+
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        currentSearchQuery = e.target.value.trim().toUpperCase();
+        renderTickers();
+      });
+    }
   </script>
 
 </body>
